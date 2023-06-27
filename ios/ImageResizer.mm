@@ -32,11 +32,13 @@ RCT_REMAP_METHOD(createResizedImage, uri:(NSString *)uri width:(double)width hei
                 extension = @"png";
             }
 
-            NSString* fullPath;
-            @try {
-                fullPath = generateFilePath(extension, outputPath);
-            } @catch (NSException *exception) {
-                [NSException raise:moduleName format:@"Invalid output path."];
+            NSString* fullPath = outputPath;
+            if (fullPath.length == 0) {
+                @try {
+                    fullPath = generateFilePath(extension, outputPath);
+                } @catch (NSException *exception) {
+                    [NSException raise:moduleName format:@"Invalid output path."];
+                }
             }
 
             NSURL * fileURL = [[NSURL alloc] initWithString:uri];
