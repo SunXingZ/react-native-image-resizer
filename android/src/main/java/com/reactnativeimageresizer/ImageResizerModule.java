@@ -36,7 +36,7 @@ public class ImageResizerModule extends ImageResizerSpec {
   }
 
   @ReactMethod
-  public void createResizedImage(String uri, double width, double height, String format, double quality, String mode, boolean onlyScaleDown, Double rotation, @Nullable String outputPath, Boolean keepMeta, Promise promise) {
+  public void createResizedImage(String uri, double width, double height, String format, double quality, String mode, boolean onlyScaleDown, Double rotation, String flip, @Nullable String outputPath, Boolean keepMeta, Promise promise) {
     WritableMap options = Arguments.createMap();
     options.putString("mode", mode);
     options.putBoolean("onlyScaleDown", onlyScaleDown);
@@ -46,7 +46,7 @@ public class ImageResizerModule extends ImageResizerSpec {
       @Override
       protected void doInBackgroundGuarded(Void... params) {
         try {
-          Object response = createResizedImageWithExceptions(uri, (int) width, (int) height, format, (int) quality, rotation.intValue(), outputPath, keepMeta, options);
+          Object response = createResizedImageWithExceptions(uri, (int) width, (int) height, format, (int) quality, rotation.intValue(), flip, outputPath, keepMeta, options);
           promise.resolve(response);
         }
         catch (IOException e) {
@@ -58,14 +58,14 @@ public class ImageResizerModule extends ImageResizerSpec {
 
   @SuppressLint("LongLogTag")
   private Object createResizedImageWithExceptions(String imagePath, int newWidth, int newHeight,
-                                                  String compressFormatString, int quality, int rotation, String outputPath,
+                                                  String compressFormatString, int quality, int rotation, String flip, String outputPath,
                                                   final boolean keepMeta,
                                                   final ReadableMap options) throws IOException {
 
     Bitmap.CompressFormat compressFormat = Bitmap.CompressFormat.valueOf(compressFormatString);
     Uri imageUri = Uri.parse(imagePath);
 
-    Bitmap scaledImage = ImageResizer.createResizedImage(this.getReactApplicationContext(), imageUri, newWidth, newHeight, quality, rotation,
+    Bitmap scaledImage = ImageResizer.createResizedImage(this.getReactApplicationContext(), imageUri, newWidth, newHeight, quality, rotation, flip,
       options.getString("mode"), options.getBoolean("onlyScaleDown"));
 
     if (scaledImage == null) {

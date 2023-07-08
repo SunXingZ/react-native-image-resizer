@@ -204,6 +204,28 @@ public class ImageResizer {
   }
 
   /**
+   * flip the specified bitmap with the given string.
+   */
+  public static Bitmap flipImage(Bitmap source, String flip)
+  {
+    Bitmap retVal;
+
+    Matrix matrix = new Matrix();
+    if (flip.equals("horizontal")) {
+      matrix.postScale(-1, 1);
+    }
+    if (flip.equals("vertical")) {
+      matrix.postScale(1, -1);
+    }
+    try {
+      retVal = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    } catch (OutOfMemoryError e) {
+      return null;
+    }
+    return retVal;
+  }
+
+  /**
    * Save the given bitmap in a directory. Extension is automatically generated using the bitmap format.
    */
   public static File saveImage(Bitmap bitmap, File saveDirectory, String fileName,
@@ -524,7 +546,7 @@ public class ImageResizer {
    * by using recycle
    */
   public static Bitmap createResizedImage(Context context, Uri imageUri, int newWidth,
-                                          int newHeight, int quality, int rotation,
+                                          int newHeight, int quality, int rotation, String flip,
                                           String mode, boolean onlyScaleDown) throws IOException  {
     Bitmap sourceImage = null;
     String imageUriScheme = imageUri.getScheme();
@@ -561,15 +583,26 @@ public class ImageResizer {
       sourceImage.recycle();
     }
 
+    // Flip image
+    Bitmap flipedImage = ImageResizer.flipImage(rotatedImage, flip);
+
+     if(flipedImage == null){
+      throw new IOException("Unable to flip image. Most likely due to not enough memory.");
+    }
+
+    if (flipedImage != rotatedImage) {
+      rotatedImage.recycle();
+    }
+
     // Scale image
-    Bitmap scaledImage = ImageResizer.resizeImage(rotatedImage, newWidth, newHeight, mode, onlyScaleDown);
+    Bitmap scaledImage = ImageResizer.resizeImage(flipedImage, newWidth, newHeight, mode, onlyScaleDown);
 
     if(scaledImage == null){
       throw new IOException("Unable to resize image. Most likely due to not enough memory.");
     }
 
-    if (scaledImage != rotatedImage) {
-      rotatedImage.recycle();
+    if (scaledImage != flipedImage) {
+      flipedImage.recycle();
     }
 
     return scaledImage;

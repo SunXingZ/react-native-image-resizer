@@ -188,6 +188,29 @@ UIImage * rotateImage(UIImage *inputImage, float rotationDegrees)
     }
 }
 
+UIImage * flipImage(UIImage *image, NSString* flip)
+{
+    if (flip.length == 0) {
+        return image
+    }
+    UIImageView *tempImageView = [[UIImageView alloc] initWithImage:image];
+      UIGraphicsBeginImageContext(tempImageView.frame.size);
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        CGAffineTransform transform;
+        if ([flip isEqualToString:@"vertical"]) {
+          transform = CGAffineTransformMake(1, 0, 0, -1, 0, tempImageView.frame.size.height);
+          CGContextConcatCTM(context, transform);
+        } else if ([flip isEqualToString:@"horizontal"]) {
+          transform = CGAffineTransformMake(-1, 0, 0, 1, tempImageView.frame.size.width, 0);
+          CGContextConcatCTM(context, transform);
+        }
+
+        [tempImageView.layer renderInContext:context];
+        UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return newImage
+}
+
 float getScaleForProportionalResize(CGSize theSize, CGSize intoSize, bool onlyScaleDown, bool maximize)
 {
     float    sx = theSize.width;
@@ -353,22 +376,8 @@ NSDictionary * transformImage(UIImage *image,
     }
 
     if (flip.length > 0) {
-      UIImageView *tempImageView = [[UIImageView alloc] initWithImage:image];
-      UIGraphicsBeginImageContext(tempImageView.frame.size);
-        CGContextRef context = UIGraphicsGetCurrentContext();
-        CGAffineTransform transform;
-        if ([flip isEqualToString:@"vertical"]) {
-          transform = CGAffineTransformMake(1, 0, 0, -1, 0, tempImageView.frame.size.height);
-          CGContextConcatCTM(context, transform);
-        } else if ([flip isEqualToString:@"horizontal"]) {
-          transform = CGAffineTransformMake(-1, 0, 0, 1, tempImageView.frame.size.width, 0);
-          CGContextConcatCTM(context, transform);
-        }
-
-        [tempImageView.layer renderInContext:context];
-        image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        if (image == nil) {
+      image = flipImage(image, flip)
+      if (image == nil) {
             [NSException raise:moduleName format:@"Can't flip the image."];
         }
     }
