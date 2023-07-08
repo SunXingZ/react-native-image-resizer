@@ -191,7 +191,7 @@ UIImage * rotateImage(UIImage *inputImage, float rotationDegrees)
 UIImage * flipImage(UIImage *image, NSString* flip)
 {
     if (flip.length == 0) {
-        return image
+        return image;
     }
     UIImageView *tempImageView = [[UIImageView alloc] initWithImage:image];
       UIGraphicsBeginImageContext(tempImageView.frame.size);
@@ -208,7 +208,7 @@ UIImage * flipImage(UIImage *image, NSString* flip)
         [tempImageView.layer renderInContext:context];
         UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
-        return newImage
+        return newImage;
 }
 
 float getScaleForProportionalResize(CGSize theSize, CGSize intoSize, bool onlyScaleDown, bool maximize)
@@ -376,7 +376,7 @@ NSDictionary * transformImage(UIImage *image,
     }
 
     if (flip.length > 0) {
-      image = flipImage(image, flip)
+      image = flipImage(image, flip);
       if (image == nil) {
             [NSException raise:moduleName format:@"Can't flip the image."];
         }
