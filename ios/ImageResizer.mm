@@ -16,12 +16,12 @@ NSString *moduleName = @"ImageResizer";
 @implementation ImageResizer
 RCT_EXPORT_MODULE()
 
-RCT_REMAP_METHOD(createResizedImage, uri:(NSString *)uri width:(double)width height:(double)height format:(NSString *)format quality:(double)quality mode:(NSString *)mode onlyScaleDown:(BOOL)onlyScaleDown rotation:(nonnull NSNumber *)rotation outputPath:(NSString *)outputPath keepMeta:(nonnull NSNumber *)keepMeta resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(createResizedImage, uri:(NSString *)uri width:(double)width height:(double)height format:(NSString *)format quality:(double)quality mode:(NSString *)mode onlyScaleDown:(BOOL)onlyScaleDown rotation:(nonnull NSNumber *)rotation flip:(NSString *)flip  outputPath:(NSString *)outputPath keepMeta:(nonnull NSNumber *)keepMeta resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
-    [self createResizedImage:uri width:width height:height format:format quality:quality mode:mode onlyScaleDown:onlyScaleDown rotation:rotation outputPath:outputPath keepMeta:keepMeta resolve:resolve reject:reject];
+    [self createResizedImage:uri width:width height:height format:format quality:quality mode:mode onlyScaleDown:onlyScaleDown rotation:rotation flip:flip outputPath:outputPath keepMeta:keepMeta resolve:resolve reject:reject];
 }
 
-- (void)createResizedImage:(NSString *)uri width:(double)width height:(double)height format:(NSString *)format quality:(double)quality mode:(NSString *)mode onlyScaleDown:(BOOL)onlyScaleDown rotation:(nonnull NSNumber *)rotation outputPath:(NSString *)outputPath keepMeta:(nonnull NSNumber *)keepMeta resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+- (void)createResizedImage:(NSString *)uri width:(double)width height:(double)height format:(NSString *)format quality:(double)quality mode:(NSString *)mode onlyScaleDown:(BOOL)onlyScaleDown rotation:(nonnull NSNumber *)rotation flip:(NSString *)flip outputPath:(NSString *)outputPath keepMeta:(nonnull NSNumber *)keepMeta resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         @try {
             CGSize newSize = CGSizeMake(width, height);
@@ -52,7 +52,7 @@ RCT_REMAP_METHOD(createResizedImage, uri:(NSString *)uri width:(double)width hei
 
             UIImage *image;
             image = [UIImage  imageWithData:imageData];
-            NSDictionary * response =  transformImage(image, uri, [rotation integerValue], newSize, fullPath, format, (int)quality, [keepMeta boolValue], @{@"mode": mode, @"onlyScaleDown": [NSNumber numberWithBool:onlyScaleDown]});
+            NSDictionary * response =  transformImage(image, uri, [rotation integerValue], flip, newSize, fullPath, format, (int)quality, [keepMeta boolValue], @{@"mode": mode, @"onlyScaleDown": [NSNumber numberWithBool:onlyScaleDown]});
             resolve(response);
         } @catch (NSException *exception) {
             RCTLogError([NSString stringWithFormat:@"Code : %@ / Message : %@", exception.name, exception.reason]);
@@ -332,6 +332,7 @@ NSMutableDictionary * getImageMeta(NSString * path)
 NSDictionary * transformImage(UIImage *image,
                     NSString * originalPath,
                     int rotation,
+                    NSString* flip,
                     CGSize newSize,
                     NSString* fullPath,
                     NSString* format,
@@ -348,6 +349,27 @@ NSDictionary * transformImage(UIImage *image,
         image = rotateImage(image, rotation);
         if (image == nil) {
             [NSException raise:moduleName format:@"Can't rotate the image."];
+        }
+    }
+
+    if (flip.length > 0) {
+      UIImageView *tempImageView = [[UIImageView alloc] initWithImage:image];
+      UIGraphicsBeginImageContext(tempImageView.frame.size);
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        CGAffineTransform transform;
+        if ([flip isEqualToString:@"vertical"]) {
+          transform = CGAffineTransformMake(1, 0, 0, -1, 0, tempImageView.frame.size.height);
+          CGContextConcatCTM(context, transform);
+        } else if ([flip isEqualToString:@"horizontal"]) {
+          transform = CGAffineTransformMake(-1, 0, 0, 1, tempImageView.frame.size.width, 0);
+          CGContextConcatCTM(context, transform);
+        }
+
+        [tempImageView.layer renderInContext:context];
+        image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        if (image == nil) {
+            [NSException raise:moduleName format:@"Can't flip the image."];
         }
     }
 

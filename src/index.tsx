@@ -21,6 +21,7 @@ function createResizedImage(
   format: ResizeFormat,
   quality: number,
   rotation: number = 0,
+  flip: '' | 'vertical' | 'horizontal' = '',
   outputPath: string = '',
   keepMeta = false,
   options: Options = defaultOptions
@@ -36,6 +37,7 @@ function createResizedImage(
     mode,
     onlyScaleDown,
     rotation,
+    flip,
     outputPath,
     keepMeta
   );
