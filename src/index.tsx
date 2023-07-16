@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import type { Options, ResizeFormat, Response } from './types';
 export type { ResizeFormat, ResizeMode, Response } from './types';
 
@@ -27,9 +27,10 @@ function createResizedImage(
   options: Options = defaultOptions
 ): Promise<Response> {
   const { mode, onlyScaleDown } = { ...defaultOptions, ...options };
+  let url = Platform.OS === 'ios' ? uri : uri?.replace('file://', '')
 
   return ImageResizer.createResizedImage(
-    uri,
+    url,
     width,
     height,
     format,
