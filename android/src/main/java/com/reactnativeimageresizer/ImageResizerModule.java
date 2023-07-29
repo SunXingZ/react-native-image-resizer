@@ -75,10 +75,14 @@ public class ImageResizerModule extends ImageResizerSpec {
     // Save the resulting image
     File path = this.getReactApplicationContext().getCacheDir();
     String fileName = UUID.randomUUID().toString() + "." + compressFormat.name();
-    if (outputPath != null) {
-      String pathDir = outputPath.substring(0, outputPath.lastIndexOf('/'));
-      path = new File(pathDir);
-      fileName = outputPath.substring(outputPath.lastIndexOf('/') + 1);
+    try {
+      if (outputPath != null && !outputPath.isEmpty()) {
+        String pathDir = outputPath.substring(0, outputPath.lastIndexOf('/'));
+        path = new File(pathDir);
+        fileName = outputPath.substring(outputPath.lastIndexOf('/') + 1);
+      }
+    } catch (Exception ignore) {
+
     }
 
     File resizedImage = ImageResizer.saveImage(scaledImage, path, fileName, compressFormat, quality);
